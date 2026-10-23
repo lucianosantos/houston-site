@@ -1,0 +1,18 @@
+node_modules/
+.nuxt/
+.output/
+dist/
+.wrangler/
+.env
+.env.*
+!.env.example
+*.log
+
+
+# Local signing material and credentials
+*.pem
+*.p12
+*.pfx
+*.key
+.dev.vars
+.dev.vars.*

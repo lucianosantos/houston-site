@@ -1,0 +1,82 @@
+.section-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  color: var(--color-muted);
+  font: 700 10px/1.5 var(--font-label);
+  letter-spacing: .1em;
+}
+.player { background: #070b09; border: 1px solid #4c4b41; overflow: hidden; }
+.player__screen {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  display: grid;
+  place-items: center;
+  isolation: isolate;
+  background: #070b09;
+}
+.player__poster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(.22) saturate(.65);
+  z-index: -2;
+}
+.player__screen::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(0deg, #06110dc9, transparent);
+  z-index: -1;
+}
+.player__overlay {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  text-align: center;
+  padding: 24px;
+  gap: 22px;
+}
+.player__overlay .eyebrow { color: #d7d5bb; margin: 0; font-size: 10px; }
+.player__overlay h2 { font-size: 48px; color: #f5e8cd; }
+.player__overlay > p:last-child { font-size: 12px; line-height: 1.7; color: #d1c7b6; max-width: 350px; }
+.player__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  min-height: 50px;
+  gap: 10px;
+  color: #bcbcb0;
+  background: #171d19;
+  font: 700 10px/1.5 var(--font-label);
+  letter-spacing: .1em;
+}
+.player__toolbar button {
+  border: 0;
+  color: #e9dfc9;
+  background: transparent;
+  padding: 6px;
+  font: 12px/1.3 var(--font-label);
+}
+.player__toolbar button:hover { text-decoration: underline; }
+.player:fullscreen { width: 100vw; height: 100dvh; display: flex; flex-direction: column; background: #000; }
+.player:fullscreen .player__screen { flex: 1; min-height: 0; aspect-ratio: auto; }
+.player iframe { width: 100%; height: 100%; position: absolute; inset: 0; border: 0; background: #000; }
+.player__loading { color: var(--color-text); z-index: 1; padding: 12px; background: #101212; }
+.player__error { font-size: 12px; padding: 12px; }
+.device-note { font: 11px/1.6 var(--font-label); color: var(--color-muted); margin-top: 13px; }
+@media (max-width: 560px) {
+  .section-label { font-size: 8px; letter-spacing: .05em; }
+  .player__overlay { padding: 12px; gap: 10px; }
+  .player__overlay h2 { font-size: 28px; }
+  .player__overlay .eyebrow { font-size: 8px; }
+  .player__overlay > p:last-child { font-size: 10px; max-width: 250px; }
+  .player__overlay .button { font-size: 11px; min-height: 38px; padding: 9px 12px; }
+  .player__toolbar { padding: 8px; font-size: 8px; letter-spacing: 0; min-height: 40px; }
+  .player__toolbar button { font-size: 10px; white-space: nowrap; }
+  .device-note { font-size: 10px; }
+}
+

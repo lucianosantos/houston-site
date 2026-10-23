@@ -1,0 +1,46 @@
+name: Deploy Cloudflare Pages
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: Branch to deploy
+        required: true
+        default: main
+        type: string
+permissions:
+  contents: read
+  deployments: write
+concurrency:
+  group: cloudflare-pages-${{ inputs.branch }}
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      DEPLOY_BRANCH: ${{ inputs.branch }}
+      PRODUCTION_BRANCH: main
+      NUXT_PUBLIC_SITE_URL: ${{ vars.NUXT_PUBLIC_SITE_URL }}
+      SITE_INDEXABLE: ${{ vars.SITE_INDEXABLE || 'false' }}
+      NUXT_PUBLIC_GAME_URL: ${{ vars.NUXT_PUBLIC_GAME_URL }}
+      NUXT_PUBLIC_GOOGLE_SITE_VERIFICATION: ${{ vars.NUXT_PUBLIC_GOOGLE_SITE_VERIFICATION }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.branch }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Check, build and verify static output
+        run: |
+          npm run check
+          node scripts/check-output.mjs
+      - name: Deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=houston-site --branch="${{ inputs.branch }}"
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+

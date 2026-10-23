@@ -1,0 +1,13 @@
+:root {
+  color-scheme: dark;
+  --color-background: #101212;
+  --color-text: #f5e8cd;
+  --color-muted: #aca99f;
+  --color-accent: #fa6844;
+  --color-border: #333835;
+  --color-panel: #191d1b;
+  --font-body: Arial, Helvetica, sans-serif;
+  --font-label: 'Courier New', monospace;
+  --page-width: 1160px;
+}
+

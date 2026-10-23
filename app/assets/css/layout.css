@@ -1,0 +1,87 @@
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 88px;
+  gap: 20px;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font: 700 13px/1.5 var(--font-label);
+  letter-spacing: .12em;
+}
+.brand__mark { font: 30px/1 Arial, sans-serif; color: var(--color-accent); }
+.brand__suffix { font-weight: 400; color: var(--color-muted); }
+.site-header nav { display: flex; align-items: center; gap: 28px; font-size: 13px; }
+.nav-play { border-bottom: 1px solid var(--color-accent); padding-bottom: 3px; }
+.game-intro {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 40px;
+  padding-block: 24px 28px;
+}
+.game-intro h1 { font-size: clamp(38px, 4.2vw, 52px); font-weight: 800; }
+.game-intro h1 span { font-size: .68em; }
+.game-intro .eyebrow { margin-bottom: 12px; font-size: 10px; }
+.game-intro__summary { color: var(--color-muted); font-size: 14px; padding-bottom: 5px; }
+.site-footer { border-top: 1px solid var(--color-border); padding-block: 30px 28px; }
+.site-footer__heading { display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+.site-footer__heading h2 { font-size: 24px; letter-spacing: -.025em; }
+.site-footer__heading > span { font: 10px var(--font-label); letter-spacing: .1em; color: var(--color-muted); }
+.team {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 26px;
+  list-style: none;
+  margin: 0;
+  padding: 32px 0 40px;
+}
+.team li { display: flex; flex-direction: column; gap: 7px; }
+.team strong { font-size: 14px; font-weight: 600; }
+.team span, .team a { font-size: 11px; color: var(--color-muted); }
+.team a { margin-top: 7px; color: var(--color-accent); text-decoration: underline; align-self: start; }
+.site-footer__bottom {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--color-border);
+  color: var(--color-muted);
+  font: 10px/1.6 var(--font-label);
+}
+@media (max-width: 800px) {
+  .site-header nav { gap: 16px; }
+  .game-intro { gap: 25px; }
+  .game-intro__summary { font-size: 12px; }
+  .team { gap: 14px; }
+}
+@media (max-width: 560px) {
+  .site-header { min-height: 70px; }
+  .brand { font-size: 11px; gap: 6px; }
+  .brand__suffix { display: none; }
+  .site-header nav { gap: 15px; font-size: 12px; }
+  .site-header .site-nav a:first-child { display: none; }
+  .game-intro { display: block; padding-top: 18px; }
+  .game-intro__summary { margin-top: 16px; font-size: 13px; }
+  .team { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; padding-block: 28px; }
+  .site-footer__heading { align-items: start; }
+  .site-footer__heading h2 { font-size: 21px; max-width: 220px; }
+  .site-footer__heading > span { font-size: 8px; white-space: nowrap; }
+  .site-footer__bottom { flex-direction: column; gap: 5px; }
+}
+
+
+.site-header__actions { display: flex; align-items: center; gap: 24px; }
+.site-header .language-switch { gap: 4px; font: 700 11px/1.5 var(--font-label); }
+.language-switch a { padding: 6px 8px; border: 1px solid var(--color-border); }
+.language-switch a[aria-current="page"] { color: var(--color-background); background: var(--color-text); }
+.device-note > span { display: block; margin-top: 4px; }
+@media (max-width: 560px) {
+  .site-header__actions { gap: 10px; }
+  .site-header .site-nav { gap: 12px; }
+  .site-header .site-nav a:nth-child(2) { display: none; }
+  .site-header .language-switch a { display: inline-block; padding: 6px; }
+}
