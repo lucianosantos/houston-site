@@ -3,3 +3,9 @@ name = "houston-site"
 pages_build_output_dir = "./dist"
 compatibility_date = "2026-10-22"
 
+
+# Private game storage, read by the Pages Function.
+[[r2_buckets]]
+binding = "GAME_BUCKET"
+bucket_name = "firefly-houston"
+

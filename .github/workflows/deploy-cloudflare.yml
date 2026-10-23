@@ -11,7 +11,7 @@ permissions:
   contents: read
   deployments: write
 concurrency:
-  group: cloudflare-pages-${{ inputs.branch }}
+  group: cloudflare-pages-houston-latest
   cancel-in-progress: false
 jobs:
   deploy:
@@ -21,8 +21,11 @@ jobs:
       PRODUCTION_BRANCH: main
       NUXT_PUBLIC_SITE_URL: ${{ vars.NUXT_PUBLIC_SITE_URL }}
       SITE_INDEXABLE: ${{ vars.SITE_INDEXABLE || 'false' }}
-      NUXT_PUBLIC_GAME_URL: ${{ vars.NUXT_PUBLIC_GAME_URL }}
       NUXT_PUBLIC_GOOGLE_SITE_VERIFICATION: ${{ vars.NUXT_PUBLIC_GOOGLE_SITE_VERIFICATION }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      R2_BUCKET_NAME: firefly-houston
     steps:
       - uses: actions/checkout@v6
         with:
@@ -32,15 +35,14 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci
-      - name: Check, build and verify static output
-        run: |
-          npm run check
-          node scripts/check-output.mjs
-      - name: Deploy
+      - run: npm run typecheck
+      - run: npm test
+      - name: Build site, upload game to R2 and check Pages output
+        run: npm run build
+      - name: Deploy Pages only after successful upload
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy dist --project-name=houston-site --branch="${{ inputs.branch }}"
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-

@@ -16,5 +16,4 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check
-      - run: node scripts/check-output.mjs
 

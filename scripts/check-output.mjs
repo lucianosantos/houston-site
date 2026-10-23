@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { readFile, access } from 'node:fs/promises'
 import { getSiteSettings } from './site-settings.mjs'
 const root = new URL('../dist/', import.meta.url)
-const { siteUrl, indexable } = getSiteSettings()
+const { siteUrl, indexable, gameUrl } = getSiteSettings()
 
 for (const [file, lang, locale, heading] of [
   ['index.html', 'en-US', 'en-us', 'Prefer to download?'],
@@ -10,6 +10,7 @@ for (const [file, lang, locale, heading] of [
   ['pt-br.html', 'pt-BR', 'pt-br', 'Prefere baixar?']
 ]) {
   const html = await readFile(new URL(file, root), 'utf8')
+  assert.ok(html.includes(gameUrl), `Missing configured game URL in ${file}`)
   assert.equal((html.match(/<h1[ >]/g) || []).length, 1)
   assert.ok(html.includes(`lang="${lang}"`), `Missing language in ${file}`)
   assert.ok(html.includes(heading), `Missing localized content in ${file}`)
@@ -37,3 +38,10 @@ if (indexable) {
 }
 console.log('PASS: English/Portuguese prerendered content, locale metadata, language links, downloads and indexing.')
 
+
+if (gameUrl === '/game/latest/index.html') {
+  await assert.rejects(access(new URL('game/', root)), { code: 'ENOENT' })
+  const routes = JSON.parse(await readFile(new URL('_routes.json', root), 'utf8'))
+  assert.ok(routes.include.includes('/game/*'), 'Game Function must be enabled')
+  console.log('PASS: latest-only R2 game URL; game assets excluded from Pages; game Function enabled.')
+}
