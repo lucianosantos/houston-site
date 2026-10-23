@@ -16,7 +16,7 @@ The website is available in **English** and **Brazilian Portuguese**:
 | `/en-us` | English |
 | `/pt-br` | Português brasileiro |
 
-On Cloudflare Pages, a root Pages Function reads the browser Accept-Language header: Portuguese preferences go to /pt-br, English preferences go to /en-us, and unsupported or missing languages fall back to English. Browser preference weights are respected. This does not use IP location. Explicit localized URLs are never automatically redirected. The static root remains an English fallback outside Cloudflare. The header’s EN/PT switch changes the website language and preserves the current section anchor. Every route is prerendered with its localized content and metadata, so direct links work without JavaScript.
+On Cloudflare Workers, the root handler reads the browser Accept-Language header: Portuguese preferences go to /pt-br, English preferences go to /en-us, and unsupported or missing languages fall back to English. Browser preference weights are respected. This does not use IP location. Explicit localized URLs are never automatically redirected. The static root remains an English fallback outside Cloudflare. The header’s EN/PT switch changes the website language and preserves the current section anchor. Every route is prerendered with its localized content and metadata, so direct links work without JavaScript.
 
 The game title stays in English. The current game build and downloadable manual are also in English; translating the website does not translate these assets.
 
@@ -26,9 +26,9 @@ The game title stays in English. The current game build and downloadable manual 
 - TypeScript with strict checks
 - Plain CSS with shared design tokens
 - Nitro static generation
-- Cloudflare Pages
+- Cloudflare Workers Static Assets and R2
 
-The content is statically generated. A small Cloudflare Pages Function redirects the root URL based on browser language; another Function streams game assets from R2. Localized pages and other assets remain static. No database, account system or CMS is required. Cloudflare Functions provide the language redirect and game delivery.
+The content is statically generated. A small Worker redirects the root URL based on browser language and streams game assets from R2. Localized pages and other assets remain static. No database, account system or CMS is required. The Worker provides the language redirect and game delivery.
 
 ## Requirements and local development
 
@@ -63,8 +63,8 @@ public/
   game/             Browser build assets
   _headers          Hosting, cache and download headers
   _redirects        URL redirects
-functions/          Browser-language redirect and R2 game delivery
-lib/                Browser-language preference selection
+worker/             Worker entry point and request routing
+lib/                Language redirect and R2 response handlers
 scripts/            Build configuration, SEO generation and output checks
 tests/              Configuration tests
 tools/              Manual PDF generator
@@ -89,7 +89,7 @@ Run npm run build:local followed by npm run preview. The local server sends the 
 
 ### Cloudflare hosting
 
-The game files remain committed in public/game. During deployment, npm run build validates the Pages output with dist/game excluded, then overwrites the private firefly-houston bucket at game/latest/ and removes obsolete game files. Only the latest build is hosted; history stays in Git. The player uses a same-origin Pages Function at /game/latest/index.html with cache revalidation. No public bucket URL or custom domain is required.
+The game files remain committed in public/game. During deployment, npm run build validates the Workers static output with dist/game excluded, then overwrites the private firefly-houston bucket at game/latest/ and removes obsolete game files. Only the latest build is hosted; history stays in Git. The player uses a same-origin Worker handler at /game/latest/index.html with cache revalidation. No public bucket URL or custom domain is required.
 
 See [Cloudflare deployment setup](docs/cloudflare-deployment.md) for build secrets, the GAME_BUCKET binding, Git integration, GitHub Actions and latest-only game hosting.
 
@@ -123,7 +123,7 @@ Copy `.env.example` to `.env` for local development. These settings are applied 
 
 Rebuild after changing these values.
 
-You do not need a custom domain to deploy. Cloudflare Pages supplies a project-based pages.dev address after a successful deployment. Leave NUXT_PUBLIC_SITE_URL empty and SITE_INDEXABLE=false for the first deployment; the website still works, with indexing disabled and no canonical/sitemap URLs. Set the confirmed Pages address or a custom domain later and rebuild when ready for indexing.
+You do not need a custom domain to deploy. Cloudflare Workers supplies a workers.dev address after a successful deployment. Leave NUXT_PUBLIC_SITE_URL empty and SITE_INDEXABLE=false for the first deployment; the website still works, with indexing disabled and no canonical/sitemap URLs. Set the confirmed Worker address or a custom domain later and rebuild when ready for indexing.
 
 ## SEO
 
@@ -141,11 +141,13 @@ The build then includes localized canonical URLs, reciprocal `hreflang` links, a
 
 ## Cloudflare deployment
 
-Use Cloudflare Pages Git integration with build command npm run build and output directory dist. The deployment build uploads the committed game to R2 before Pages publishes the website. Required build credentials are CLOUDFLARE_ACCOUNT_ID, R2_ACCESS_KEY_ID and R2_SECRET_ACCESS_KEY; R2_BUCKET_NAME defaults to firefly-houston. Configure secrets only in the deployment environment.
+Use Cloudflare Workers Git integration with build command npm run build and deploy command npx wrangler deploy. Keep npx wrangler preview as the preview command, with automatic preview builds disabled. The Worker name is houston-site; wrangler.toml configures dist as its static asset directory and firefly-houston as its R2 bucket.
 
-Follow [the deployment guide](docs/cloudflare-deployment.md) for the complete setup, token permissions and the alternative manual GitHub Actions workflow. Use one deployment path to avoid duplicate deployments.
+Required build settings are CLOUDFLARE_ACCOUNT_ID, R2_ACCESS_KEY_ID and R2_SECRET_ACCESS_KEY; R2_BUCKET_NAME defaults to firefly-houston. Configure the two R2 keys as build secrets. Workers Builds handles deployment authentication separately.
 
-The public/_routes.json file restricts function execution to / and /game/*. The root performs language selection; game requests stream the latest game objects from the private GAME_BUCKET binding. No deployment has been performed by this implementation.
+Follow [the deployment guide](docs/cloudflare-deployment.md) for setup, token permissions and the alternative manual GitHub Actions workflow. Use one deployment path to avoid duplicate deployments.
+
+Selective Worker routing handles / and /game/* before static assets. Other requests use the ASSETS binding. No remote deployment has been performed by this implementation.
 
 
 ## Validation
@@ -157,7 +159,7 @@ npm run build:local
 node scripts/check-output.mjs
 ```
 
-Checks cover TypeScript, configuration behavior, static generation, localized output, metadata, gameplay order, downloads and indexing rules. npm run check also validates a deployment-shaped dry run with the game excluded from Pages output. It needs no upload credentials. npm run build performs the real R2 upload and fails if credentials are missing or upload fails.
+Checks cover TypeScript, configuration behavior, static generation, localized output, metadata, gameplay order, downloads and indexing rules. npm run check also validates a deployment-shaped dry run with the game excluded from Workers static output. It needs no upload credentials. npm run build performs the real R2 upload and fails if credentials are missing or upload fails.
 
 The page layout is responsive. This does not certify the Unity build for mobile browsers; game compatibility requires testing the actual build.
 

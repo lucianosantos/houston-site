@@ -13,9 +13,9 @@
     "build": "node scripts/build-cloudflare.mjs",
     "preview": "node scripts/preview.mjs",
     "check": "npm run typecheck && npm test && npm run build:ci",
-    "deploy:preview": "wrangler pages deploy dist --branch preview",
     "build:local": "nuxt generate && node scripts/finalize-build.mjs --local",
-    "build:ci": "node scripts/build-cloudflare.mjs --dry-run"
+    "build:ci": "node scripts/build-cloudflare.mjs --dry-run",
+    "deploy": "wrangler deploy"
   },
   "dependencies": {
     "nuxt": "^4.0.0",

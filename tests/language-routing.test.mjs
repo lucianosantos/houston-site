@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { preferredLanguagePath } from '../lib/preferred-language.mjs'
-import { onRequest } from '../functions/index.js'
+import { languageResponse } from '../lib/language-response.mjs'
 
 test('Portuguese browser variants use Portuguese and English variants use English', () => {
   for (const language of ['pt', 'pt-BR', 'pt-PT', 'PT-br']) assert.equal(preferredLanguagePath(language), '/pt-br')
@@ -20,7 +20,7 @@ test('unsupported or malformed preferences fall back to English', () => {
 })
 test('root redirect preserves query parameters and prevents language-dependent caching', () => {
   const request = new Request('https://houston.example/?campaign=launch', { headers: { 'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8' } })
-  const response = onRequest({ request })
+  const response = languageResponse({ request })
   assert.equal(response.status, 302)
   assert.equal(response.headers.get('Location'), 'https://houston.example/pt-br?campaign=launch')
   assert.equal(response.headers.get('Cache-Control'), 'no-store')

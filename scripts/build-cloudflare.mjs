@@ -9,9 +9,9 @@ const dryRun = process.argv.includes('--dry-run')
 const settings = dryRun ? null : uploadSettings()
 const release = await createGameRelease(gameRoot)
 const env = { ...process.env, NUXT_PUBLIC_GAME_URL: release.url }
-async function run(script) {
+async function run(script, args = []) {
   await new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [script], { cwd: root, env, stdio: 'inherit' })
+    const child = spawn(process.execPath, [script, ...args], { cwd: root, env, stdio: 'inherit' })
     child.on('error', reject)
     child.on('exit', code => code === 0 ? resolve() : reject(new Error('Build step failed: ' + script)))
   })
@@ -27,6 +27,7 @@ await new Promise((resolve, reject) => {
 await rm(new URL('../dist/game/', import.meta.url), { recursive: true, force: true })
 await run('scripts/finalize-build.mjs')
 await run('scripts/check-output.mjs')
+await run('node_modules/wrangler/bin/wrangler.js', ['deploy', '--dry-run', '--outdir', '.wrangler/deploy-check'])
 if (!dryRun) {
   const sdk = await import('@aws-sdk/client-s3')
   const client = new sdk.S3Client({

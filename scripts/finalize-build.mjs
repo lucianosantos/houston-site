@@ -18,7 +18,7 @@ if (siteUrl && indexable) {
   await rm(new URL('sitemap.xml', dist), { force: true })
 }
 const headersPath = new URL('_headers', dist)
-let headers = (await readFile(headersPath, 'utf8')).replace(/^  X-Robots-Tag: noindex, nofollow\r?\n/gm, '')
+let headers = (await readFile(headersPath, 'utf8')).replace(/\r\n/g, '\n').replace(/^  X-Robots-Tag: noindex, nofollow\r?\n/gm, '')
 if (!indexable) headers = headers.replace('/*\n', '/*\n  X-Robots-Tag: noindex, nofollow\n')
 await writeFile(headersPath, headers)
 // Keep framework-generated fallback pages out of the index.
@@ -36,12 +36,12 @@ async function checkSizes(directory) {
     const path = join(directory, entry.name)
     if (entry.isDirectory()) await checkSizes(path)
     else if ((await stat(path)).size > 25 * 1024 * 1024) {
-      throw new Error(`Cloudflare Pages asset exceeds 25 MiB: ${path}. Host oversized game files externally.`)
+      throw new Error(`Workers Static Assets asset exceeds 25 MiB: ${path}. Host oversized game files externally.`)
     }
   }
 }
 if (process.argv.includes('--local')) {
-  console.log('LOCAL PREVIEW ONLY: asset-size validation skipped; this output is not ready for Cloudflare Pages.')
+  console.log('LOCAL PREVIEW ONLY: asset-size validation skipped; this output is not ready for Workers Static Assets.')
 } else {
   await checkSizes(fileURLToPath(dist))
 }

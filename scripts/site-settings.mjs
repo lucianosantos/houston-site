@@ -10,7 +10,7 @@ export function getSiteSettings(env = process.env) {
   }
   const requested = env.SITE_INDEXABLE === 'true'
   if (requested && !siteUrl) throw new Error('Set NUXT_PUBLIC_SITE_URL before enabling SITE_INDEXABLE.')
-  const branch = env.CF_PAGES_BRANCH || env.DEPLOY_BRANCH
+  const branch = env.WORKERS_CI_BRANCH || env.DEPLOY_BRANCH
   const productionBranch = env.PRODUCTION_BRANCH || 'main'
   const indexable = Boolean(requested && siteUrl && (!branch || branch === productionBranch))
   const gameUrl = (env.NUXT_PUBLIC_GAME_URL || '').trim() || '/game/index.html'

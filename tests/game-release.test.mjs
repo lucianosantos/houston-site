@@ -38,7 +38,7 @@ test('credentials, bucket and production branch are checked before uploading', (
   const env = { CLOUDFLARE_ACCOUNT_ID: 'a'.repeat(32), R2_ACCESS_KEY_ID: 'test', R2_SECRET_ACCESS_KEY: 'test' }
   assert.equal(uploadSettings(env).bucket, 'firefly-houston')
   assert.throws(() => uploadSettings({ ...env, R2_BUCKET_NAME: 'other' }), /binding/)
-  assert.throws(() => uploadSettings({ ...env, CF_PAGES_BRANCH: 'feature' }), /production branch/)
+  assert.throws(() => uploadSettings({ ...env, WORKERS_CI_BRANCH: 'feature' }), /production branch/)
   assert.equal(uploadSettings({ ...env, DEPLOY_BRANCH: 'main' }).bucket, 'firefly-houston')
 })
 test('unchanged uploads are reused; cleanup is paginated and restricted to managed game files', async () => {

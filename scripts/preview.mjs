@@ -1,5 +1,5 @@
 import http from 'node:http'
-import { onRequest } from '../functions/index.js'
+import { languageResponse } from '../lib/language-response.mjs'
 import { readFile } from 'node:fs/promises'
 import { dirname, resolve, extname, relative, isAbsolute } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -12,7 +12,7 @@ http.createServer(async (req, res) => {
       const request = new Request('http://127.0.0.1:4173' + req.url, {
         headers: { 'Accept-Language': req.headers['accept-language'] || '' }
       })
-      const response = onRequest({ request })
+      const response = languageResponse({ request })
       res.writeHead(response.status, Object.fromEntries(response.headers)).end()
       return
     }

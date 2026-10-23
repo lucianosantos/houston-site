@@ -41,7 +41,8 @@ console.log('PASS: English/Portuguese prerendered content, locale metadata, lang
 
 if (gameUrl === '/game/latest/index.html') {
   await assert.rejects(access(new URL('game/', root)), { code: 'ENOENT' })
-  const routes = JSON.parse(await readFile(new URL('_routes.json', root), 'utf8'))
-  assert.ok(routes.include.includes('/game/*'), 'Game Function must be enabled')
-  console.log('PASS: latest-only R2 game URL; game assets excluded from Pages; game Function enabled.')
+  await assert.rejects(access(new URL('_routes.json', root)), { code: 'ENOENT' })
+  const ignored = await readFile(new URL('.assetsignore', root), 'utf8')
+  assert.ok(ignored.includes('/game/'), 'Game files must be excluded from Workers Static Assets')
+  console.log('PASS: latest-only R2 game URL; game assets excluded from Workers Static Assets; no Pages routing manifest.')
 }

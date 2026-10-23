@@ -41,7 +41,7 @@ export function uploadSettings(env = process.env) {
   }
   if (!/^[a-f0-9]{32}$/i.test(env.CLOUDFLARE_ACCOUNT_ID)) throw new Error('CLOUDFLARE_ACCOUNT_ID must be the 32-character account ID.')
   if ((env.R2_BUCKET_NAME || bucketName) !== bucketName) throw new Error('R2_BUCKET_NAME must match the GAME_BUCKET binding: ' + bucketName)
-  const branch = env.CF_PAGES_BRANCH || env.DEPLOY_BRANCH
+  const branch = env.WORKERS_CI_BRANCH || env.DEPLOY_BRANCH
   if (branch && branch !== (env.PRODUCTION_BRANCH || 'main')) throw new Error('Only the production branch may overwrite the latest game. Use build:ci for preview validation.')
   return { accountId: env.CLOUDFLARE_ACCOUNT_ID, bucket: bucketName,
     accessKeyId: env.R2_ACCESS_KEY_ID, secretAccessKey: env.R2_SECRET_ACCESS_KEY }

@@ -2,9 +2,9 @@
 
 ## Current checks
 
-- Strict TypeScript checks, eight configuration/routing tests and static generation passed during implementation.
+- Strict TypeScript checks, 18 configuration/routing tests and static generation passed for the Workers migration.
 - English and Portuguese output, localized metadata, download links, manual, and indexing rules passed generated-output checks.
-- Browser-language redirection compiled successfully with Wrangler Pages Functions.
+- The Worker entry point bundled successfully with wrangler deploy --dry-run.
 - Browser checks covered language switching, translated content, responsive layout and fullscreen controls.
 
 ## Repository review - 2026-10-23
@@ -20,8 +20,8 @@
 - The local repository contains the initial project commit. No code was committed or pushed by this integration.
 - No deployment was performed. Cloudflare project creation and a successful remote build remain unverified.
 - Production URL remains optional while SITE_INDEXABLE=false. Default builds omit canonical/sitemap URLs and remain noindex.
-- The browser game remains available locally at /game/index.html. The deployment pipeline now uploads only the latest game assets to R2, excluding them from Pages output. Remote upload and deployment are unverified until credentials are configured.
-- npm run build:local retains local game files. npm run build uploads them to R2 before validating the remaining Pages output; npm run check uses a credential-free dry run.
+- The browser game remains available locally at /game/index.html. The deployment pipeline now uploads only the latest game assets to R2, excluding them from Workers static output. Remote upload and deployment are unverified until credentials are configured.
+- npm run build:local retains local game files. npm run build validates Workers output before uploading to R2; npm run check uses a credential-free dry run.
 
 ## Local game integration - 2026-10-23
 
@@ -48,3 +48,13 @@ A pattern-based source scan cannot guarantee that every possible sensitive value
 - Cache-Control is no-cache with ETag revalidation. Preview branches cannot overwrite production. GitHub deployments share one concurrency group.
 - Fixed-path updates are not atomic; interrupted updates may need a retry and open games may need to reload. Git retains the build history.
 - Latest-only checks passed: TypeScript, all 15 tests, deployment-shaped static generation, Pages Functions compilation and local Workers/R2 Brotli smoke test.
+
+## Workers migration - 2026-10-23
+
+- Replaced the Pages configuration and entry points with worker/index.mjs, an ASSETS binding and selective Worker-first routing for / and /game/*.
+- Runtime game storage remains private firefly-houston via GAME_BUCKET. Only game/latest/ is hosted; no retention behavior was added.
+- Production checks and indexing now use Workers Builds' WORKERS_CI_BRANCH. The confirmed Worker name is houston-site.
+- TypeScript, all 18 tests, localized output checks and wrangler deploy --dry-run passed. The generated game folder is excluded from static upload.
+- Actual local Wrangler HTTP checks passed for browser-language redirects, both localized pages, static noindex headers, manual attachment headers, legacy redirects and genuine 404 responses.
+- Local R2 checks passed for byte-identical Brotli framework delivery, HEAD and ETag revalidation. No real R2 upload or remote deployment was performed.
+- README, environment template, deployment guide and manual GitHub deployment workflow now target Workers. Local preview reuses the relocated language handler.

@@ -1,0 +1,4 @@
+# Defense in depth: the game is served from R2, never Workers Static Assets.
+/game/
+/_routes.json
+/_worker.js

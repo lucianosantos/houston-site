@@ -12,9 +12,9 @@ test('only a valid HTTPS origin is accepted as canonical', () => {
   }
 })
 test('preview branches stay out of search even when production indexing is configured', () => {
-  const env = { NUXT_PUBLIC_SITE_URL: 'https://example.com/', SITE_INDEXABLE: 'true', CF_PAGES_BRANCH: 'feature' }
+  const env = { NUXT_PUBLIC_SITE_URL: 'https://example.com/', SITE_INDEXABLE: 'true', WORKERS_CI_BRANCH: 'feature' }
   assert.equal(getSiteSettings(env).indexable, false)
-  assert.equal(getSiteSettings({ ...env, CF_PAGES_BRANCH: 'main' }).indexable, true)
+  assert.equal(getSiteSettings({ ...env, WORKERS_CI_BRANCH: 'main' }).indexable, true)
 })
 test('unsafe game URL protocols and protocol-relative URLs are refused', () => {
   for (const gameUrl of ['javascript:alert(1)', '//other.example/game', 'data:text/html,test']) {
