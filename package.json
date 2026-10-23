@@ -13,7 +13,8 @@
     "build": "nuxt generate && node scripts/finalize-build.mjs",
     "preview": "node scripts/preview.mjs",
     "check": "npm run typecheck && npm test && npm run build",
-    "deploy:preview": "wrangler pages deploy dist --branch preview"
+    "deploy:preview": "wrangler pages deploy dist --branch preview",
+    "build:local": "nuxt generate && node scripts/finalize-build.mjs --local"
   },
   "dependencies": {
     "nuxt": "^4.0.0",

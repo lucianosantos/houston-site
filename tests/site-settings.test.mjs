@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { getSiteSettings } from '../scripts/site-settings.mjs'
 
 test('an unset domain cannot accidentally produce an indexable site', () => {
-  assert.deepEqual(getSiteSettings({}), { siteUrl: '', indexable: false, gameUrl: '' })
+  assert.deepEqual(getSiteSettings({}), { siteUrl: '', indexable: false, gameUrl: '/game/index.html' })
   assert.throws(() => getSiteSettings({ SITE_INDEXABLE: 'true' }), /SITE_URL/)
 })
 test('only a valid HTTPS origin is accepted as canonical', () => {

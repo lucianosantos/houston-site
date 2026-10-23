@@ -17,3 +17,19 @@
   Content-Type: application/pdf
   Content-Disposition: attachment; filename="Houston-Instruction-Manual.pdf"
 
+
+/game/Build/web.data.br
+  Content-Type: application/octet-stream
+  Content-Encoding: br
+
+/game/Build/web.framework.js.br
+  Content-Type: application/javascript
+  Content-Encoding: br
+
+/game/Build/web.wasm.br
+  Content-Type: application/wasm
+  Content-Encoding: br
+
+/game/*
+  Cache-Control: no-cache
+  X-Robots-Tag: noindex

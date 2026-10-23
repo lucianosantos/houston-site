@@ -17,9 +17,19 @@
 
 ## Deployment state
 
-- The local repository has no commits yet; no code was pushed by this review.
+- The local repository contains the initial project commit. No code was committed or pushed by this integration.
 - No deployment was performed. Cloudflare project creation and a successful remote build remain unverified.
 - Production URL remains optional while SITE_INDEXABLE=false. Default builds omit canonical/sitemap URLs and remain noindex.
-- The browser game is not connected; its controls, audio and complete gameplay have not been validated here.
+- The browser game is connected locally at /game/index.html. Hosting the game remains pending by user choice: Build/web.data.br is 49.4 MiB, above the Cloudflare Pages 25 MiB per-file limit.
+- npm run build:local explicitly allows this local preview; the normal build retains its deployment size check and rejects this oversized asset.
+
+## Local game integration - 2026-10-23
+
+- Copied output2/web from the original Unity project into public/game. Copied build assets were verified against the source with SHA-256; the original export was not modified.
+- Added responsive embedding styles and Brotli content headers for the compressed Unity data, framework and WebAssembly files.
+- TypeScript checks, all eight automated tests, local static generation and generated-output checks passed.
+- Browser checks loaded the game menu, manual and controller cockpit with its countdown. Fullscreen was verified with automatic iframe focus.
+- The game logs: "Menu music loop start must be inside the clip." Audio behavior and complete cooperative gameplay have not been validated.
+- Restart an already-running development server to reload the default game URL configuration.
 
 A pattern-based source scan cannot guarantee that every possible sensitive value is absent.

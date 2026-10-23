@@ -23,7 +23,14 @@ http.createServer(async (req, res) => {
       if (!extname(path)) return readFile(path + '.html')
       throw error
     })
-    res.writeHead(200, { 'Content-Type': types[extname(path)] || (extname(path) ? 'application/octet-stream' : 'text/html; charset=utf-8') }).end(body)
+    const compressed = path.endsWith('.br')
+    const underlyingPath = compressed ? path.slice(0, -3) : path
+    const contentType = types[extname(underlyingPath)] || (extname(underlyingPath) ? 'application/octet-stream' : 'text/html; charset=utf-8')
+    res.writeHead(200, {
+      'Content-Type': contentType,
+      'Content-Length': body.length,
+      ...(compressed ? { 'Content-Encoding': 'br' } : {})
+    }).end(body)
   } catch {
     res.writeHead(404, { 'Content-Type': 'text/html' }).end(await readFile(resolve(root, '404.html')).catch(() => 'Not found'))
   }

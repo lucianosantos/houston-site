@@ -17,6 +17,10 @@ export function useGameFullscreen(target: Ref<HTMLElement | null>) {
     try {
       if (active.value) await document.exitFullscreen()
       else await target.value?.requestFullscreen()
+      // Keep the embedded game focused after the toolbar changes fullscreen mode.
+      const frame = target.value?.querySelector<HTMLIFrameElement>('iframe')
+      frame?.focus()
+      frame?.contentWindow?.focus()
     } catch {
       error.value = 'Fullscreen is unavailable. You can still play in the page.'
     }

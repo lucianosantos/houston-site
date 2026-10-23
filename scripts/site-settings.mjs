@@ -13,7 +13,7 @@ export function getSiteSettings(env = process.env) {
   const branch = env.CF_PAGES_BRANCH || env.DEPLOY_BRANCH
   const productionBranch = env.PRODUCTION_BRANCH || 'main'
   const indexable = Boolean(requested && siteUrl && (!branch || branch === productionBranch))
-  const gameUrl = (env.NUXT_PUBLIC_GAME_URL || '').trim()
+  const gameUrl = (env.NUXT_PUBLIC_GAME_URL || '').trim() || '/game/index.html'
   if (gameUrl && !(/^\/(?!\/)/.test(gameUrl) || /^https:\/\//.test(gameUrl))) {
     throw new Error('NUXT_PUBLIC_GAME_URL must be an absolute site path or HTTPS URL.')
   }

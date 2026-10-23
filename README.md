@@ -42,7 +42,7 @@ npm run dev
 For a production build and local preview:
 
 ```sh
-npm run build
+npm run build:local
 npm run preview
 ```
 
@@ -81,9 +81,19 @@ All images and the manual are served locally from `public/`. The website does no
 
 ## Browser game
 
-The browser build is not included yet. The site displays a clear availability message and keeps the start button disabled until a game URL is configured. Windows and Mobile downloads remain available.
+The Web export is included in public/game and connected at /game/index.html. The visitor clicks Start game to load it inside the page. This copy comes from the game project's output2/web folder; the original export is unchanged.
 
-To enable browser play:
+### Local preview
+
+Run npm run build:local followed by npm run preview. The local server sends the Content-Encoding: br and MIME headers required by this Brotli-compressed export. Its copied HTML shell uses embed.css to fill the website's game frame and hide Unity's duplicate outer footer.
+
+### Hosting limit
+
+This build's web.data.br is 51,772,175 bytes (49.4 MiB), above Cloudflare Pages' 25 MiB per-file limit. Local-only integration was selected; external hosting will be decided later. npm run build:local skips that size guard explicitly for local preview. Regular npm run build and deployment checks still reject the oversized file. Do not deploy dist from the local-only command to Pages.
+
+Windows and Mobile download links remain available.
+
+To replace the included Web build:
 
 1. Export and test a Unity Web build.
 2. Copy its complete generated structure to `public/game/`.
@@ -117,7 +127,7 @@ Copy `.env.example` to `.env` for local development. These settings are applied 
 | `NUXT_PUBLIC_SITE_URL` | Production HTTPS origin; currently unset |
 | `SITE_INDEXABLE` | Enable indexing only when the production domain is ready |
 | `PRODUCTION_BRANCH` | Production branch; defaults to `main` |
-| `NUXT_PUBLIC_GAME_URL` | Browser game path or HTTPS URL |
+| `NUXT_PUBLIC_GAME_URL` | Defaults to /game/index.html; can point to an external HTTPS build |
 | `NUXT_PUBLIC_GOOGLE_SITE_VERIFICATION` | Optional Search Console verification token |
 
 Rebuild after changing these values.
@@ -161,11 +171,13 @@ No Cloudflare deployment or domain configuration has been performed yet. Create 
 ## Validation
 
 ```sh
-npm run check
+npm run typecheck
+npm test
+npm run build:local
 node scripts/check-output.mjs
 ```
 
-Checks cover TypeScript, configuration behavior, static generation, localized output, metadata, gameplay order, downloads and indexing rules.
+Checks cover TypeScript, configuration behavior, static generation, localized output, metadata, gameplay order, downloads and indexing rules. The production npm run check command also enforces the Pages per-file limit and is expected to fail with the current oversized game data file until hosting is resolved.
 
 The page layout is responsive. This does not certify the Unity build for mobile browsers; game compatibility requires testing the actual build.
 
