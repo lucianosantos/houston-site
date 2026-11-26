@@ -1,104 +1,85 @@
-# Deploying Houston with Cloudflare Workers and R2
+# Cloudflare Workers and R2
 
-The website uses **Workers Static Assets**, not legacy Pages.
-The game export stays committed in `public/game/`. The production build uploads it to the private `firefly-houston` bucket and excludes `dist/game/` from static assets.
+The website uses Workers Static Assets (`dist`) and the private `firefly-houston` R2 bucket bound as `GAME_BUCKET`.
 
-## Cloudflare Git integration
+## Website deployment
 
-Connect the repository to a Worker named **houston-site** and configure:
+- Production branch: `main`; Worker: `houston-site`.
+- Build command: `npm run build`.
+- Deploy command: `npx wrangler deploy`.
+- Node: 22.22.0 (see .node-version).
+- Disable automatic preview builds if not needed.
+- Existing Workers Git integration or the manual GitHub Actions workflow deploys the website.
+- Website builds do not read or upload game exports. R2 game contents are left untouched.
+- `dist/game/` is removed before validation and deployment; `public/.assetsignore` also excludes `/game/`.
+- The bucket stays private; no public bucket domain or CORS configuration is needed.
 
-| Setting | Value |
-| --- | --- |
-| Build command | `npm run build` |
-| Deploy command | `npx wrangler deploy` |
-| Preview command | `npx wrangler preview` (unused while preview builds are disabled) |
-| Production branch | `main` |
-| Root directory | Empty when package.json is at the repository root |
-| Node version | `22.22.0` |
-| Automatic preview builds | Disabled |
+## Compile game builds from the site
 
-The output directory is configured as `dist` in `wrangler.toml`; no Pages output-directory setting is needed.
-Keep the Worker name in the dashboard equal to `name` in `wrangler.toml`.
+On Windows, close Unity for this project before running:
 
-In **Workers Builds build variables/secrets**, configure:
+    npm run build:game
+    npm run build:game -- --copy
 
-| Variable | Value | Secret? |
-| --- | --- | --- |
-| `CLOUDFLARE_ACCOUNT_ID` | Account ID containing the bucket and Worker | No; may be encrypted |
-| `R2_BUCKET_NAME` | `firefly-houston` | No |
-| `R2_ACCESS_KEY_ID` | R2 S3 API access key ID | Yes |
-| `R2_SECRET_ACCESS_KEY` | R2 S3 API secret access key | Yes |
-| `PRODUCTION_BRANCH` | `main` | No |
-| `SITE_INDEXABLE` | `false` until the production URL is chosen | No |
-| `NUXT_PUBLIC_SITE_URL` | Leave unset until a production URL is chosen | No |
+Both commands use PowerShell and launch Unity three times in sequence, with the saved Windows, Mobile and Web Build Profiles. They validate the project, profiles, installed modules and Editor lock before deleting the Unity project's entire `output/` folder. Builds are written to `output/Windows`, `output/Mobile` (APK) and `output/Web`. Unity caches in Library are retained; this is an output cleanup, not a full asset-cache reset.
 
-Generate an **R2** API token with **Object Read & Write** access restricted to `firefly-houston`. It must allow listing, reading, writing and deleting objects.
-Copy its S3 Access Key ID and Secret Access Key into the corresponding build secrets. They are separate from the deployment API token that Workers Builds creates or uses.
-The deployment API token needs permission to deploy the Worker and use its R2 binding in this account.
+`--copy` waits for all three builds to succeed, prepares the copies, and replaces this site's `public/game/` with clean `windows/`, `mobile/` and `web/` inputs. A failed build stops the sequence and leaves the existing site inputs untouched. Compilation does not publish anything. Logs are saved in `.game-publish/build-logs/`.
 
-The S3 script uses the account's standard global endpoint. A jurisdiction-specific bucket would need a corresponding endpoint change.
-Do not set `NUXT_PUBLIC_GAME_URL` for deployment: the build sets `/game/latest/index.html` automatically.
+Optional `.env` variables:
 
-The bucket can remain private; no public R2 URL, custom domain or CORS configuration is needed.
-`wrangler.toml` declares the `GAME_BUCKET` runtime binding. The build upload credentials are not required by the running Worker.
-The exported game is publicly readable through the website's `/game/latest/...` route.
+- `UNITY_PROJECT_PATH`: Unity project directory. Defaults to `../../roguelike/GameJam2026` relative to the site.
+- `UNITY_EDITOR_PATH`: Unity.exe. Defaults to the Unity Hub installation matching ProjectVersion.txt.
 
-Cloudflare supplies a workers.dev address after deployment when the account's workers.dev subdomain is configured.
-Keep indexing disabled initially. When the final URL is confirmed, set `NUXT_PUBLIC_SITE_URL` and `SITE_INDEXABLE=true`, then rebuild.
+`npm run build:game -- --copy --dry-run` checks prerequisites and prints the plan without deleting, compiling or copying anything. Then use `npm run publish:game` separately to publish the prepared files to R2.
 
-## Runtime routing
+## Publish all three platforms locally
 
-- `/`: the Worker reads Accept-Language and redirects to English or Portuguese, preserving query parameters.
-- `/game/*`: the Worker serves only the latest game's managed paths from R2, with Brotli/MIME metadata, ETags and cache revalidation.
-- Other paths: Workers Static Assets serves `dist`, including localized pages, downloads, artwork and genuine 404 responses.
+Place complete exports in this site repository:
 
-Selective `run_worker_first` routing ensures that the root's generated index.html does not bypass language selection.
-The standard `_headers` and `_redirects` files configure static responses. The obsolete Pages `functions/` entry points and `_routes.json` are removed.
-`public/.assetsignore` also excludes game assets from Workers uploads as defense in depth.
+    public/game/web/index.html
+    public/game/web/Build/...
+    public/game/web/TemplateData/...
+    public/game/windows/Houston.exe
+    public/game/windows/UnityPlayer.dll
+    public/game/windows/Houston_Data/...
+    public/game/mobile/your-build.apk
 
-## Build pipeline
+`public/game/` and `.game-publish/` are ignored by Git. Previously tracked exports are removed from the index without deleting local files. Old binaries remain in Git history; this change does not rewrite history.
 
-1. Validate credentials, the production branch and the committed game export.
-2. Generate the static Nuxt site using the fixed latest-game URL.
-3. Remove only `dist/game/`; validate localized output, SEO and the 25 MiB static-asset limit.
-4. Run `wrangler deploy --dry-run` to validate and bundle the Worker before changing R2.
-5. Upload changed game assets to `game/latest/`. Reuse matching objects and upload index.html last.
-6. After successful uploads, remove stale objects in `game/latest/` and any previous `game/releases/<sha256>/` objects. Other bucket paths are untouched.
-7. Workers Builds runs the deploy command to publish the Worker and static assets.
-
-Only the latest exported game is hosted. Hashes identify unchanged files; they do not create versioned game directories. History remains in Git.
-The build uses `WORKERS_CI_BRANCH` (Cloudflare) or `DEPLOY_BRANCH` (manual CI) to prevent non-production branches from overwriting the shared game.
-
-Fixed-path replacement is not atomic. An interrupted upload can leave the live game partially updated; retry the deployment. Players loading during updates may need to reload.
-R2 changes take effect before Worker deployment. Rolling back only the Worker does not restore the game; redeploy the corresponding Git revision.
-
-Use one deployment path, and avoid overlapping Cloudflare/local uploads.
-The Worker still has platform-managed deployment versions, but this pipeline does not retain multiple game builds in R2.
-Worker requests and R2 reads may incur usage charges. No edge cache is configured by this implementation.
-
-## GitHub Actions alternative
-
-The manual **Deploy Cloudflare Worker** workflow runs the same production pipeline. Configure repository secrets:
+Copy `.env.example` to `.env` and fill in:
 
 - `CLOUDFLARE_ACCOUNT_ID`
 - `R2_ACCESS_KEY_ID`
 - `R2_SECRET_ACCESS_KEY`
-- `CLOUDFLARE_API_TOKEN`: permission to deploy Workers and attach the account's R2 binding.
+- `R2_BUCKET_NAME=firefly-houston`
 
-Optional repository variables: `NUXT_PUBLIC_SITE_URL`, `SITE_INDEXABLE`, `NUXT_PUBLIC_GOOGLE_SITE_VERIFICATION`.
-Run the workflow on the production branch. The shared concurrency group serializes manual deployments.
-Do not also enable a second automatic deployment path for the same branch.
+Use an R2 S3 API token with Object Read & Write permissions restricted to that bucket, including listing and deleting objects. These are upload credentials, distinct from the Worker deployment API token. Never commit `.env` or prefix secrets with `NUXT_PUBLIC_`.
 
-## Validation and local play
+Run:
 
-`npm run check` runs type checks, tests, static generation, output checks and Wrangler's deployment dry run without uploading to R2 or deploying.
-Do not deploy that output directly: it has not synchronized the game's files to R2.
+    npm run publish:game -- --dry-run
+    npm run publish:game
 
-For actual local gameplay, use `npm run dev` or `npm run build:local && npm run preview`.
-These keep the game local. The simple preview server shares the Worker's browser-language redirect handler, but serves the game from local files.
+The first command validates all exports and produces a Windows ZIP without accessing R2. The second performs the upload. The command resolves paths from the site repository, independently of the Unity project or the terminal's working directory. It reads `.env` when invoked through npm from this repository.
 
-`npm run build` requires deployment credentials and writes to R2; it does not itself publish the Worker.
-`npm run deploy` publishes the Worker and static assets already built. In Workers Builds, keep build and deploy as the separate commands above.
-Never commit secret values or prefix them with `NUXT_PUBLIC_`.
+Windows is zipped with all runtime files. Unity debug-only folders containing DoNotShip or BurstDebugInformation, and tempburstlibs, are excluded. Keep exactly one APK directly in mobile/. Web exports support both Web.* and web.* filenames. A generated copy of index.html receives the embedded-player stylesheet; source exports are not edited.
 
-Reference: [Workers Static Assets](https://developers.cloudflare.com/workers/static-assets/), [Workers Builds](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/), [R2 credentials](https://developers.cloudflare.com/r2/api/tokens/).
+The uploader hashes files, skips matching objects, streams original bytes, uploads the Web index last and removes obsolete files only within managed paths after successful uploads. APK and ZIP objects are stored under `downloads/latest/`; Web under `game/latest/`. Downloads are uploaded before Web. Keep only one publisher running at a time.
+
+Public fixed links (same origin as the website):
+
+- `/game/latest/index.html`
+- `/downloads/latest/houston-windows.zip`
+- `/downloads/latest/houston-android.apk`
+
+The Worker streams these paths from R2, revalidates caching and forces attachment downloads for APK/ZIP. URLs do not change when contents change. Deploy the new website and Worker once to enable the download routes; subsequent game updates need only the publisher command.
+
+Uploads replace the latest files and are not atomic across platforms or Web files. If interrupted, retry the publisher. This setup keeps no previous game builds in R2 and cannot roll them back through a website-only rollback.
+
+## Checks and local preview
+
+`npm run check` runs type checks, tests, a website build, static output validation and Wrangler dry run without credentials, uploads or publishing. It also works when public/game is absent, as in a fresh CI checkout.
+
+`npm run build:local && npm run preview` keeps local game files for preview. The preview server maps `/game/latest/` to `/game/web/` and sets Brotli headers.
+
+Reference: [Workers Static Assets](https://developers.cloudflare.com/workers/static-assets/), [R2 credentials](https://developers.cloudflare.com/r2/api/tokens/).

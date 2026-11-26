@@ -4,11 +4,29 @@ import { readdir, stat } from 'node:fs/promises'
 import { join } from 'node:path'
 
 export const bucketName = 'firefly-houston'
+
+// Match the standard Unity HTML export and preserve its exact object-key casing.
+// Windows can load Web.* as web.*, but the same mismatch causes a 404 in R2.
+export function validateWebReferences(html, files) {
+  const buildDirectory = html.match(/\b(?:var|let|const)\s+buildUrl\s*=\s*(['"])([^'"]+)\1/)?.[2]
+  if (!buildDirectory) throw new Error('Cannot read buildUrl from the Unity Web index.html.')
+  const paths = new Set(files.map(file => file.relative))
+  for (const property of ['loaderUrl', 'dataUrl', 'frameworkUrl', 'codeUrl']) {
+    const pattern = new RegExp('\\b' + property + '\\s*[:=]\\s*buildUrl\\s*\\+\\s*([\'"])([^\'"]+)\\1')
+    const suffix = html.match(pattern)?.[2]
+    if (!suffix?.startsWith('/')) throw new Error('Cannot read ' + property + ' from the Unity Web index.html.')
+    const path = buildDirectory + suffix
+    if (!paths.has(path)) {
+      throw new Error('Unity Web index.html references a missing file (case-sensitive): ' + path + '. Copy the entire Web export without renaming its files.')
+    }
+  }
+}
+
 export function gameMetadata(path) {
   const compressed = path.endsWith('.br')
   const plain = compressed ? path.slice(0, -3) : path
   const extension = plain.split('.').pop().toLowerCase()
-  const types = { html: 'text/html; charset=utf-8', js: 'application/javascript', css: 'text/css', wasm: 'application/wasm', data: 'application/octet-stream', png: 'image/png', jpg: 'image/jpeg', ico: 'image/x-icon', json: 'application/json' }
+  const types = { html: 'text/html; charset=utf-8', js: 'application/javascript', css: 'text/css', wasm: 'application/wasm', data: 'application/octet-stream', png: 'image/png', jpg: 'image/jpeg', ico: 'image/x-icon', json: 'application/json', zip: 'application/zip', apk: 'application/vnd.android.package-archive' }
   return { ContentType: types[extension] || 'application/octet-stream',
     ...(compressed ? { ContentEncoding: 'br' } : {}),
     CacheControl: 'no-cache' }
@@ -29,7 +47,7 @@ export async function createGameRelease(root) {
   }
   await walk(root)
   for (const required of ['index.html', 'Build/web.loader.js', 'Build/web.data.br', 'Build/web.framework.js.br', 'Build/web.wasm.br']) {
-    if (!files.some(file => file.relative === required)) throw new Error('Missing game export file: ' + required)
+    if (!files.some(file => file.relative.toLowerCase() === required.toLowerCase())) throw new Error('Missing game export file: ' + required)
   }
   files.sort((a, b) => a.relative < b.relative ? -1 : a.relative > b.relative ? 1 : 0)
   const prefix = 'game/latest/'
@@ -48,7 +66,7 @@ export function uploadSettings(env = process.env) {
 }
 // Overwrite a single build; publish its HTML last and prune stale files only after successful uploads.
 export async function uploadRelease(client, commands, settings, release, root) {
-  if (release.prefix !== 'game/latest/') throw new Error('Unexpected managed game prefix.')
+  if (!['game/latest/', 'downloads/latest/'].includes(release.prefix)) throw new Error('Unexpected managed game prefix.')
   const ordered = [...release.files.filter(file => file.relative !== 'index.html'), ...release.files.filter(file => file.relative === 'index.html')]
   for (const file of ordered) {
     const Key = release.prefix + file.relative
@@ -61,7 +79,7 @@ export async function uploadRelease(client, commands, settings, release, root) {
       if (error.$metadata?.httpStatusCode !== 404) throw error
     }
     await client.send(new commands.PutObjectCommand({
-      Bucket: settings.bucket, Key, Body: createReadStream(join(root, file.relative)),
+      Bucket: settings.bucket, Key, Body: createReadStream(file.sourcePath || join(root, file.relative)),
       ContentLength: file.size, ContentType: file.ContentType, ContentEncoding: file.ContentEncoding,
       CacheControl: file.CacheControl, Metadata: { sha256: file.sha256 }
     }))
@@ -74,12 +92,12 @@ export async function uploadRelease(client, commands, settings, release, root) {
   let token
   do {
     const page = await client.send(new commands.ListObjectsV2Command({
-      Bucket: settings.bucket, Prefix: 'game/', ...(token ? { ContinuationToken: token } : {})
+      Bucket: settings.bucket, Prefix: release.prefix === 'game/latest/' ? 'game/' : release.prefix, ...(token ? { ContinuationToken: token } : {})
     }))
     for (const object of page.Contents || []) {
       const key = object.Key
-      if (key && ((key.startsWith('game/latest/') && !expected.has(key))
-          || /^game\/releases\/[a-f0-9]{64}\//.test(key))) obsolete.push(key)
+      if (key && ((key.startsWith(release.prefix) && !expected.has(key))
+          || (release.prefix === 'game/latest/' && /^game\/releases\/[a-f0-9]{64}\//.test(key)))) obsolete.push(key)
     }
     token = page.IsTruncated ? page.NextContinuationToken : undefined
     if (page.IsTruncated && !token) throw new Error('R2 listing was truncated without a continuation token.')

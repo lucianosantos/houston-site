@@ -10,7 +10,7 @@ export default {
       }
       return languageResponse({ request })
     }
-    if (path.startsWith('/game/')) return gameResponse({ request, env })
+    if (path.startsWith('/game/') || path.startsWith('/downloads/latest/')) return gameResponse({ request, env })
     return env.ASSETS.fetch(request)
   }
 }

@@ -16,7 +16,8 @@ http.createServer(async (req, res) => {
       res.writeHead(response.status, Object.fromEntries(response.headers)).end()
       return
     }
-    const path = resolve(root, '.' + pathname)
+    const localPath = pathname.startsWith('/game/latest/') ? pathname.replace('/game/latest/', '/game/web/') : pathname
+    const path = resolve(root, '.' + localPath)
     const withinRoot = relative(root, path)
     if (withinRoot.startsWith('..') || isAbsolute(withinRoot)) { res.writeHead(403).end(); return }
     const body = await readFile(path).catch(error => {

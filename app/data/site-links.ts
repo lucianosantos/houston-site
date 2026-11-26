@@ -6,8 +6,8 @@ export interface TeamMember {
 }
 
 export const downloads = [
-  { platform: 'Windows', url: 'https://drive.google.com/file/d/1ObkxOQtCsQGK-pZ_eHkWoI6VmInbMYPw/view?usp=sharing' },
-  { platform: 'Mobile', url: 'https://drive.google.com/file/d/17aiD4n0JrrqkoX5trT6Pcv2UtIqXhn0G/view?usp=drive_link' }
+  { platform: 'Windows', url: '/downloads/latest/houston-windows.zip' },
+  { platform: 'Mobile', url: '/downloads/latest/houston-android.apk' }
 ] as const
 
 // QR destinations supplied by the team. Keep the original redirects until direct contacts are supplied.

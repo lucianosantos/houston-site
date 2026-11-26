@@ -27,9 +27,9 @@ export default defineNuxtConfig({
     prerender: { routes: ['/', '/en-us', '/pt-br'], crawlLinks: false, failOnError: true, autoSubfolderIndex: false }
   },
   routeRules: {
-    '/game/Build/web.data.br': { headers: { 'Content-Encoding': 'br', 'Content-Type': 'application/octet-stream' } },
-    '/game/Build/web.framework.js.br': { headers: { 'Content-Encoding': 'br', 'Content-Type': 'application/javascript' } },
-    '/game/Build/web.wasm.br': { headers: { 'Content-Encoding': 'br', 'Content-Type': 'application/wasm' } }
+    '/game/web/Build/web.data.br': { headers: { 'Content-Encoding': 'br', 'Content-Type': 'application/octet-stream' } },
+    '/game/web/Build/web.framework.js.br': { headers: { 'Content-Encoding': 'br', 'Content-Type': 'application/javascript' } },
+    '/game/web/Build/web.wasm.br': { headers: { 'Content-Encoding': 'br', 'Content-Type': 'application/wasm' } }
   },
   // Re-read the included Web build URL when the development server restarts.
   runtimeConfig: {

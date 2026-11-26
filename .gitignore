@@ -1,3 +1,5 @@
+/public/game/
+/.game-publish/
 node_modules/
 .nuxt/
 .output/

@@ -15,12 +15,16 @@
     "check": "npm run typecheck && npm test && npm run build:ci",
     "build:local": "nuxt generate && node scripts/finalize-build.mjs --local",
     "build:ci": "node scripts/build-cloudflare.mjs --dry-run",
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy",
+    "publish:game": "node --env-file-if-exists=.env scripts/publish-game.mjs",
+    "build:game": "node --env-file-if-exists=.env scripts/build-game.mjs",
+    "buildncopy:game": "node --env-file-if-exists=.env scripts/build-game.mjs -- --copy"
   },
   "dependencies": {
     "nuxt": "^4.0.0",
     "vue": "^3.5.0",
-    "vue-router": "^5.1.0"
+    "vue-router": "^5.1.0",
+    "zip-stream": "6.0.1"
   },
   "devDependencies": {
     "@aws-sdk/client-s3": "^3.1156.0",

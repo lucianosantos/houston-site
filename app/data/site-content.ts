@@ -28,8 +28,8 @@ const en = {
   fullscreenError: 'Fullscreen is unavailable. You can still play in the page.',
   controls: 'Browser controls: mouse & keyboard. Use your own voice chat to communicate.',
   gameLanguage: 'Game and manual available in English.',
-  downloadTitle: 'Prefer to download?', downloadNote: 'Choose your version. Downloads open in Google Drive.',
-  downloadFor: 'Download for', driveHint: 'opens Google Drive in a new tab',
+  downloadTitle: 'Prefer to download?', downloadNote: 'Choose your version: Windows (ZIP) or Android (APK).',
+  downloadFor: 'Download for', downloadHint: 'download the latest published version',
   aboutLabel: 'ABOUT THE GAME', aboutLine1: 'One ship.', aboutLine2: 'Two perspectives.', aboutLine3: 'Talk to survive.',
   about: [
     'Your ship is on a collision course with a planet. Five systems need repairing, and you have ten minutes to work it out together.',
@@ -75,8 +75,8 @@ const pt: SiteCopy = {
   fullscreenError: 'A tela cheia não está disponível. Você ainda pode jogar na página.',
   controls: 'Controles no navegador: mouse e teclado. Usem sua própria chamada de voz para conversar.',
   gameLanguage: 'Jogo e manual disponíveis em inglês.',
-  downloadTitle: 'Prefere baixar?', downloadNote: 'Escolha sua versão. Os links abrem no Google Drive.',
-  downloadFor: 'Baixar para', driveHint: 'abre o Google Drive em uma nova aba',
+  downloadTitle: 'Prefere baixar?', downloadNote: 'Escolha sua versão: Windows (ZIP) ou Android (APK).',
+  downloadFor: 'Baixar para', downloadHint: 'baixar a última versão publicada',
   aboutLabel: 'SOBRE O JOGO', aboutLine1: 'Uma nave.', aboutLine2: 'Duas perspectivas.', aboutLine3: 'Conversem para sobreviver.',
   about: [
     'Sua nave está em rota de colisão com um planeta. Cinco sistemas precisam de reparos, e vocês têm dez minutos para resolver tudo em equipe.',

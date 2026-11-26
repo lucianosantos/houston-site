@@ -15,7 +15,7 @@ for (const [file, lang, locale, heading] of [
   assert.ok(html.includes(`lang="${lang}"`), `Missing language in ${file}`)
   assert.ok(html.includes(heading), `Missing localized content in ${file}`)
   for (const name of ['Jhonatan Brendo', 'Luciano Santos', 'Marcela Nunes', 'Victoria Viana', 'Maurício Junior']) assert.ok(html.includes(name))
-  for (const href of ['/downloads/houston-manual.pdf', '17aiD4n0JrrqkoX5trT6Pcv2UtIqXhn0G', '1ObkxOQtCsQGK-pZ_eHkWoI6VmInbMYPw', '/en-us', '/pt-br']) assert.ok(html.includes(href))
+  for (const href of ['/downloads/houston-manual.pdf', '/downloads/latest/houston-android.apk', '/downloads/latest/houston-windows.zip', '/en-us', '/pt-br']) assert.ok(html.includes(href))
   assert.ok(html.indexOf('id="play"') < html.indexOf('id="about"'))
   assert.match(html, /application\/ld\+json/)
   assert.match(html, /property="og:title"/)

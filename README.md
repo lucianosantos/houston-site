@@ -2,9 +2,9 @@
 
 A cooperative communication puzzle game by **Firefly Studio**.
 
-Two players must repair a spacecraft before it collides with a planet. One operates the ship’s control panel; the other reads the manual and explains the instructions. They have different information, five systems to repair, and ten minutes to work together.
+Two players must repair a spacecraft before it collides with a planet. One operates the shipÃ¢â‚¬â„¢s control panel; the other reads the manual and explains the instructions. They have different information, five systems to repair, and ten minutes to work together.
 
-This project contains the game’s public website: browser play area, Windows and Mobile downloads, an instruction manual, and team contacts.
+This project contains the gameÃ¢â‚¬â„¢s public website: browser play area, Windows and Mobile downloads, an instruction manual, and team contacts.
 
 ## Languages
 
@@ -14,9 +14,9 @@ The website is available in **English** and **Brazilian Portuguese**:
 | --- | --- |
 | `/` | Redirects using browser language; English fallback |
 | `/en-us` | English |
-| `/pt-br` | Português brasileiro |
+| `/pt-br` | PortuguÃƒÂªs brasileiro |
 
-On Cloudflare Workers, the root handler reads the browser Accept-Language header: Portuguese preferences go to /pt-br, English preferences go to /en-us, and unsupported or missing languages fall back to English. Browser preference weights are respected. This does not use IP location. Explicit localized URLs are never automatically redirected. The static root remains an English fallback outside Cloudflare. The header’s EN/PT switch changes the website language and preserves the current section anchor. Every route is prerendered with its localized content and metadata, so direct links work without JavaScript.
+On Cloudflare Workers, the root handler reads the browser Accept-Language header: Portuguese preferences go to /pt-br, English preferences go to /en-us, and unsupported or missing languages fall back to English. Browser preference weights are respected. This does not use IP location. Explicit localized URLs are never automatically redirected. The static root remains an English fallback outside Cloudflare. The headerÃ¢â‚¬â„¢s EN/PT switch changes the website language and preserves the current section anchor. Every route is prerendered with its localized content and metadata, so direct links work without JavaScript.
 
 The game title stays in English. The current game build and downloadable manual are also in English; translating the website does not translate these assets.
 
@@ -73,28 +73,57 @@ tools/              Manual PDF generator
 
 ## Content
 
-Edit `app/data/site-content.ts` for both languages’ page copy, labels, accessibility text and SEO metadata. English defines the translation shape; TypeScript checks that Portuguese supplies every field.
+Edit `app/data/site-content.ts` for both languagesÃ¢â‚¬â„¢ page copy, labels, accessibility text and SEO metadata. English defines the translation shape; TypeScript checks that Portuguese supplies every field.
 
 Edit `app/data/site-links.ts` for platform downloads and team contacts. Names and contact addresses are shared between languages; role labels are translated.
 
 All images and the manual are served locally from `public/`. The website does not depend on the Unity source at runtime.
 
-## Browser game
+## Compile game builds from the site
 
-The Web export is included in public/game and connected at /game/index.html. The visitor clicks Start game to load it inside the page. This copy comes from the game project's output2/web folder; the original export is unchanged.
+On Windows, close Unity for this project before running:
 
-### Local preview
+    npm run build:game
+    npm run build:game -- --copy
 
-Run npm run build:local followed by npm run preview. The local server sends the Content-Encoding: br and MIME headers required by this Brotli-compressed export. Its copied HTML shell uses embed.css to fill the website's game frame and hide Unity's duplicate outer footer.
+Both commands use PowerShell and launch Unity three times in sequence, with the saved Windows, Mobile and Web Build Profiles. They validate the project, profiles, installed modules and Editor lock before deleting the Unity project's entire `output/` folder. Builds are written to `output/Windows`, `output/Mobile` (APK) and `output/Web`. Unity caches in Library are retained; this is an output cleanup, not a full asset-cache reset.
 
-### Cloudflare hosting
+`--copy` waits for all three builds to succeed, prepares the copies, and replaces this site's `public/game/` with clean `windows/`, `mobile/` and `web/` inputs. A failed build stops the sequence and leaves the existing site inputs untouched. Compilation does not publish anything. Logs are saved in `.game-publish/build-logs/`.
 
-The game files remain committed in public/game. During deployment, npm run build validates the Workers static output with dist/game excluded, then overwrites the private firefly-houston bucket at game/latest/ and removes obsolete game files. Only the latest build is hosted; history stays in Git. The player uses a same-origin Worker handler at /game/latest/index.html with cache revalidation. No public bucket URL or custom domain is required.
+Optional `.env` variables:
 
-See [Cloudflare deployment setup](docs/cloudflare-deployment.md) for build secrets, the GAME_BUCKET binding, Git integration, GitHub Actions and latest-only game hosting.
+- `UNITY_PROJECT_PATH`: Unity project directory. Defaults to `../../roguelike/GameJam2026` relative to the site.
+- `UNITY_EDITOR_PATH`: Unity.exe. Defaults to the Unity Hub installation matching ProjectVersion.txt.
 
-To replace the game, commit a complete new export in public/game, preserving the responsive shell and embed.css, then deploy. The deployment URL stays fixed at /game/latest/index.html. Test loading, audio, controls, fullscreen and both player roles after changing the export.
+`npm run build:game -- --copy --dry-run` checks prerequisites and prints the plan without deleting, compiling or copying anything. Then use `npm run publish:game` separately to publish the prepared files to R2.
 
+## Publishing game builds
+
+Local exports live in `public/game/web`, `public/game/windows` and `public/game/mobile`.
+This entire directory is ignored by Git. The publisher reads no other project.
+
+- `web/`: complete Unity Web export, including index.html, Build and TemplateData.
+- `windows/`: complete Windows export, including the EXE, UnityPlayer.dll and *_Data folder.
+- `mobile/`: exactly one APK directly in this folder.
+
+Configure local `.env` from `.env.example`, including the R2 upload credentials, once.
+Run `npm run publish:game -- --dry-run` to validate inputs and create the Windows ZIP without uploading.
+Run `npm run publish:game` to publish all three builds to the private R2 bucket.
+The publisher excludes Unity DoNotShip/BurstDebugInformation/tempburstlibs directories from the Windows ZIP and adapts a copy of the Web HTML for embedding.
+
+Fixed public routes, served by the Worker through its existing GAME_BUCKET binding:
+
+- `/game/latest/index.html`
+- `/downloads/latest/houston-windows.zip`
+- `/downloads/latest/houston-android.apk`
+
+No generated link or website rebuild is required for future binary updates.
+Deploy the changed website/Worker once before using the new download links.
+`npm run build` only builds/validates the website; it never uploads or overwrites R2 binaries.
+Recompiling in Unity does not publish anything: copy the exports here, then run the publisher.
+
+For local Web play, use `npm run build:local` followed by `npm run preview`; the preview server maps the game route to the local `web/` export.
+See [Cloudflare deployment setup](docs/cloudflare-deployment.md).
 
 ## Instruction manual
 
@@ -118,7 +147,7 @@ Copy `.env.example` to `.env` for local development. These settings are applied 
 | `NUXT_PUBLIC_SITE_URL` | Production HTTPS origin; currently unset |
 | `SITE_INDEXABLE` | Enable indexing only when the production domain is ready |
 | `PRODUCTION_BRANCH` | Production branch; defaults to `main` |
-| `NUXT_PUBLIC_GAME_URL` | Defaults to /game/index.html; can point to an external HTTPS build |
+| `NUXT_PUBLIC_GAME_URL` | Defaults to /game/latest/index.html; can point to an external HTTPS build |
 | `NUXT_PUBLIC_GOOGLE_SITE_VERIFICATION` | Optional Search Console verification token |
 
 Rebuild after changing these values.
@@ -141,25 +170,18 @@ The build then includes localized canonical URLs, reciprocal `hreflang` links, a
 
 ## Cloudflare deployment
 
-Use Cloudflare Workers Git integration with build command npm run build and deploy command npx wrangler deploy. Keep npx wrangler preview as the preview command, with automatic preview builds disabled. The Worker name is houston-site; wrangler.toml configures dist as its static asset directory and firefly-houston as its R2 bucket.
+Use Cloudflare Workers Git integration with build command `npm run build` and deploy command `npx wrangler deploy`. The Worker name is `houston-site`; `wrangler.toml` configures `dist` and the private `firefly-houston` bucket.
 
-Required build settings are CLOUDFLARE_ACCOUNT_ID, R2_ACCESS_KEY_ID and R2_SECRET_ACCESS_KEY; R2_BUCKET_NAME defaults to firefly-houston. Configure the two R2 keys as build secrets. Workers Builds handles deployment authentication separately.
-
-Follow [the deployment guide](docs/cloudflare-deployment.md) for setup, token permissions and the alternative manual GitHub Actions workflow. Use one deployment path to avoid duplicate deployments.
-
-Selective Worker routing handles / and /game/* before static assets. Other requests use the ASSETS binding. No remote deployment has been performed by this implementation.
-
+R2 upload credentials belong in the local ignored `.env` for `npm run publish:game`. Website CI builds need no game binaries or R2 upload credentials.
 
 ## Validation
 
 ```sh
-npm run typecheck
-npm test
-npm run build:local
-node scripts/check-output.mjs
+npm run check
+npm run publish:game -- --dry-run
 ```
 
-Checks cover TypeScript, configuration behavior, static generation, localized output, metadata, gameplay order, downloads and indexing rules. npm run check also validates a deployment-shaped dry run with the game excluded from Workers static output. It needs no upload credentials. npm run build performs the real R2 upload and fails if credentials are missing or upload fails.
+Checks cover TypeScript, configuration behavior, static generation, localized output, metadata, gameplay order, downloads and indexing rules. npm run check also validates a deployment-shaped dry run with the game excluded from Workers static output. It needs no upload credentials. npm run publish:game performs the real R2 upload and fails if credentials are missing or upload fails.
 
 The page layout is responsive. This does not certify the Unity build for mobile browsers; game compatibility requires testing the actual build.
 
@@ -171,7 +193,7 @@ The page layout is responsive. This does not certify the Unity build for mobile 
 | Luciano Santos | Programming |
 | Marcela Nunes | Game Design and 3D Art |
 | Victoria Viana | 2D Artist and UI Design |
-| Maurício Junior | Sound Design |
+| MaurÃƒÂ­cio Junior | Sound Design |
 
 Contact links are configured in `app/data/site-links.ts`.
 
